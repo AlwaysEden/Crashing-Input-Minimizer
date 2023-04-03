@@ -3,10 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/wait.h>
-<<<<<<< HEAD
 #include <fcntl.h>
-=======
->>>>>>> 119c9ac103ddd557e089b91536a01377d233b6b8
 
 int READ = 0;
 int WRITE = 1;
