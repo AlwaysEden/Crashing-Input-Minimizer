@@ -2,6 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
 int READ = 0;
 int WRITE = 1;
@@ -30,27 +31,48 @@ void reduce(char s[], char *argv[]) {
   //     length = extract_length - (i + extract_length);
   //     tail = strncpy(sm, ptr, length);
   //     heil = strcat(head, tail);
-      pid = fork();
-      printf("%d\n", pid);
-      if (pid < 0) {
-        perror("fork error");
-        exit(1);
-      } else if (pid == 0) { // 자식 프로세스
-          printf("여기 안와?1");
-          close(pipes[READ]); // 읽기용 파일 디스크립터 닫기
-          dup2(pipes[WRITE], STDOUT_FILENO); // 표준 출력을 파이프에 연결
-          close(pipes[WRITE]); // 원래 파일 디스크립터 닫기
-          printf("여기 안와?");
-          execl(argv[2], argv[1], NULL); // 실행하고자 하는 프로그램 실행
-      } else { // 부모 프로세스
-          printf("여기 안와?2");
-          close(pipes[1]); // 쓰기용 파일 디스크립터 닫기
-          char buffer[1024];
-          close(pipes[0]); // 원래 파일 디스크립터 닫기
-          wait(NULL); // 자식 프로세스 종료 대기
-          int m = read(pipes[0], buffer, sizeof(buffer)); // 파이프로부터 읽기
-          printf("Received: %.*s\n", m, buffer); // 받은 결과 출력
-      }
+
+    pid = fork();
+  if (pid < 0) {
+    perror("fork error");
+    exit(1);
+  } else if (pid == 0) { // 자식 프로세스
+    printf("1\n");
+    close(pipes[READ]); // 읽기용 파일 디스크립터 닫기
+    dup2(pipes[WRITE], STDOUT_FILENO); // 표준 출력을 파이프에 연결
+    close(pipes[WRITE]); // 원래 파일 디스크립터 닫기
+    execl(argv[2], argv[1], NULL); // 실행하고자 하는 프로그램 실행
+  } else { // 부모 프로세스
+    printf("2\n");
+    close(pipes[WRITE]); // 쓰기용 파일 디스크립터 닫기
+    wait(NULL); // 자식 프로세스 종료 대기
+    char buffer[1024];
+    int m = read(pipes[READ], buffer, sizeof(buffer)); // 파이프로부터 읽기
+    printf("3\n");
+    close(pipes[READ]); // 원래 파일 디스크립터 닫기
+    printf("Received: %.*s\n", m, buffer); // 받은 결과 출력
+  }
+
+      // pid = fork();
+      // if(pid > 0){
+      //   printf("여기 안와?2");
+      //   close(pipes[1]); // 쓰기용 파일 디스크립터 닫기
+      //   char buffer[1024];
+      //   close(pipes[0]); // 원래 파일 디스크립터 닫기
+      //   wait(NULL); // 자식 프로세스 종료 대기
+      //   int m = read(pipes[0], buffer, sizeof(buffer)); // 파이프로부터 읽기
+      //   printf("Received: %.*s\n", m, buffer); // 받은 결과 출력
+      // }else if(pid == 0){
+      //   printf("여기 안와?1");
+      //   close(pipes[READ]); // 읽기용 파일 디스크립터 닫기
+      //   dup2(pipes[WRITE], STDOUT_FILENO); // 표준 출력을 파이프에 연결
+      //   close(pipes[WRITE]); // 원래 파일 디스크립터 닫기
+      //   printf("여기 안와?");
+      //   execl(argv[2], argv[1], NULL); // 실행하고자 하는 프로그램 실행
+      // }else{
+      //   printf("Error");
+      // }
+      // printf("When you out?\n");
     // }
   //  }
 
