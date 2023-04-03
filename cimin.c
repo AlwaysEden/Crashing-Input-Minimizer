@@ -34,34 +34,27 @@ void reduce(char s[], char *argv[]) {
   //     tail = strncpy(sm, ptr, length);
   //     heil = strcat(head, tail);
 
-      pid = fork();
-      if (pid < 0) {
-        perror("fork error");
-        exit(1);
-      } else if (pid == 0) { // 자식 프로세스
-          printf("여기 안와?1");
-          close(pipes[READ]); // 읽기용 파일 디스크립터 닫기
-          dup2(pipes[WRITE], STDOUT_FILENO); // 표준 출력을 파이프에 연결
-          close(pipes[WRITE]); // 원래 파일 디스크립터 닫기
-          printf("여기 안와?");
-	  int fd = open(argv[1],O_RDONLY);
-	  dup2(fd, STDIN_FILENO);
-	  close(fd);
-          execl(argv[2],"<", argv[1], NULL); // 실행하고자 하는 프로그램 실행
-      } else { // 부모 프로세스
-          printf("여기 안와?2");
-          close(pipes[WRITE]); // 쓰기용 파일 디스크립터 닫기
-	  wait(NULL);
-          char buffer[1024];
-	  int total_read = 0;
-	  while(total_read < sizeof(buffer)){
-		int m = read(pipes[0], buffer+total_read, sizeof(buffer)-total_read); // 파이프로부터 읽기
-		if (m = 0) break;
-		total_read += m;
-	  }
-	  close(pipes[READ]);
-          printf("Received: %.*s\n", total_read, buffer); // 받은 결과 출력
-	}
+    pid = fork();
+    if (pid < 0) {
+      perror("fork error");
+      exit(1);
+    } else if (pid == 0) { // 자식 프로세스
+      close(pipes[READ]); // 읽기용 파일 디스크립터 닫기
+      dup2(pipes[WRITE], STDOUT_FILENO); // 표준 출력을 파이프에 연결
+      close(pipes[WRITE]); // 원래 파일 디스크립터 닫기
+      int fd = open(argv[1],O_RDONLY);
+      dup2(fd, STDIN_FILENO);
+      close(fd);
+      execl(argv[2],"<", argv[1], NULL); // 실행하고자 하는 프로그램 실행
+    } else { // 부모 프로세스
+      close(pipes[WRITE]); // 쓰기용 파일 디스크립터 닫기
+      wait(NULL);
+      char buffer[1024];
+      fgets(buffer, sizeof(buffer), pipes[READ]); // 첫 줄만 읽어오기
+      close(pipes[READ]);
+      printf("Received: %s", buffer); // 첫 줄 출력
+    }
+	  
   free(sm); // 할당된 메모리 해제
 }
 
