@@ -3,7 +3,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+<<<<<<< HEAD
 #include <fcntl.h>
+=======
+>>>>>>> 119c9ac103ddd557e089b91536a01377d233b6b8
 
 int READ = 0;
 int WRITE = 1;
@@ -33,6 +36,7 @@ void reduce(char s[], char *argv[]) {
   //     length = extract_length - (i + extract_length);
   //     tail = strncpy(sm, ptr, length);
   //     heil = strcat(head, tail);
+
       pid = fork();
       if (pid < 0) {
         perror("fork error");
@@ -60,11 +64,7 @@ void reduce(char s[], char *argv[]) {
 	  }
 	  close(pipes[READ]);
           printf("Received: %.*s\n", total_read, buffer); // 받은 결과 출력
-      }
-    // }
-  //  }
-
-
+	}
   free(sm); // 할당된 메모리 해제
 }
 
