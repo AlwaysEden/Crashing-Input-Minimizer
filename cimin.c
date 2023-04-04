@@ -39,20 +39,31 @@ void reduce(char s[], char *argv[]) {
       perror("fork error");
       exit(1);
     } else if (pid == 0) { // 자식 프로세스
-      close(pipes[READ]); // 읽기용 파일 디스크립터 닫기
-      dup2(pipes[WRITE], STDOUT_FILENO); // 표준 출력을 파이프에 연결
-      close(pipes[WRITE]); // 원래 파일 디스크립터 닫기
-      int fd = open(argv[1],O_RDONLY);
-      dup2(fd, STDIN_FILENO);
-      close(fd);
+      //close(pipes[READ]); // 읽기용 파일 디스크립터 닫기
+      //dup2(pipes[WRITE], STDOUT_FILENO); // 표준 출력을 파이프에 연결
+      //close(pipes[WRITE]); // 원래 파일 디스크립터 닫기//이 부분 필요 없을 수도 있다는 생각이 들어서 삭제 보류
+      pipes[WRITE] = open(argv[1],O_RDONLY);
+      dup2(pipes[WRITE], STDIN_FILENO);
+      close(pipes[WRITE]);
       execl(argv[2],"<", argv[1], NULL); // 실행하고자 하는 프로그램 실행
     } else { // 부모 프로세스
       close(pipes[WRITE]); // 쓰기용 파일 디스크립터 닫기
       wait(NULL);
+//	printf("여긴들어오나?\n");
       char buffer[1024];
-      fgets(buffer, sizeof(buffer), pipes[READ]); // 첫 줄만 읽어오기
+      //dup2(pipes[READ], STDOUT_FILENO);
+	// pipes[READ]를 파일 스트림으로 변환
+	FILE* pipestream = fdopen(pipes[READ], "r");
+// fgets() 함수의 인자로 파일 스트림을 전달
+	fgets(buffer, sizeof(buffer), pipestream);
+//	printf("여긴 들어오나?2\n");
+// 파일 스트림 닫기
+	fclose(pipestream);
+
+      //fgets(buffer, sizeof(buffer), pipes[READ]); // 첫 줄만 읽어오기
       close(pipes[READ]);
       printf("Received: %s", buffer); // 첫 줄 출력
+//	printf("여긴들어오나?3\n");
     }
 	  
   free(sm); // 할당된 메모리 해제
