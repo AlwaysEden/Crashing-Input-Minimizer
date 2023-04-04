@@ -9,19 +9,19 @@ int READ = 0;
 int WRITE = 1;
 int pipes[2];
 
-void reduce(char s[], char *argv[]) {
-  char *sm = (char*)malloc(sizeof(char) * (strlen(s) + 1)); // 메모리 할당
-  strcpy(sm, s); // 값 복사
+void reduce(char s[], char *argv[]) { //The function to reduce the input with the error message
+  char *sm = (char*)malloc(sizeof(char) * (strlen(s) + 1));
+  strcpy(sm, s);
   sm[strlen(s)] = '\n';
   int sm_length = strlen(sm);
   int extract_length = sm_length - 1;
-
   char * head = "";
   char * tail = "";
   char * heil = ""; //Heap + tail
   char *ptr;
   int length = 0;
   pid_t pid;
+
   // while(extract_length > 0) {
   //   for(int i=0; i<sm_length - extract_length; i++){
   //     if(i == 0){
@@ -33,43 +33,41 @@ void reduce(char s[], char *argv[]) {
   //     length = extract_length - (i + extract_length);
   //     tail = strncpy(sm, ptr, length);
   //     heil = strcat(head, tail);
+
+  //***** Execute the target program *****
 	if(pipe(pipes) != 0) {
-    		perror("pipe");
-    		exit(1);
-  	}
+        perror("pipe");
+        exit(1);
+  }
 	pid = fork();
 	if (pid < 0) {
 		perror("fork error");
 		exit(1);
-    	} else if (pid == 0) { // 자식 프로세스
-      		close(pipes[READ]); // 읽기용 파일 디스크립터 닫기
-      //dup2(pipes[WRITE], STDOUT_FILENO); // 표준 출력을 파이프에 연결
-      //close(pipes[WRITE]); // 원래 파일 디스크립터 닫기//이 부분 필요 없을 수도 있다는 생각이 들어서 삭제 보류
-      		pipes[WRITE] = open("output.txt",O_WRONLY | O_CREAT | O_TRUNC);
+  } else if (pid == 0) { // Child process
+    close(pipes[READ]); 
+    pipes[WRITE] = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC);
 		int fd = open(argv[1], O_RDONLY);
-      		dup2(pipes[WRITE], STDOUT_FILENO);
+    dup2(pipes[WRITE], STDOUT_FILENO);
 		dup2(fd, STDIN_FILENO);
 		close(fd);
-      		close(pipes[WRITE]);
-      		execl(argv[2],"<", argv[1], NULL); // 실행하고자 하는 프로그램 실행
-    	} else { // 부모 프로세스
-		wait(NULL);
-      		close(pipes[WRITE]); // 쓰기용 파일 디스크립터 닫기
+    close(pipes[WRITE]);
+    execl(argv[2],"<", argv[1], NULL); // Execute the target program
+  } else { // parent process
+		
+    close(pipes[WRITE]);
 		pipes[READ] = open("output.txt", O_RDONLY);
-      		char buffer[1024];
-      	//	dup2(STDIN_FILENO, pipes[READ]);
-      		if(read(pipes[READ], buffer, sizeof(buffer)) > 0){
+    char buffer[1024];
+    if(read(pipes[READ], buffer, sizeof(buffer)) > 0){
 			printf("%s", buffer);
 			printf("제발,,\n");
 		}else{
 			printf("아닌가벼");
 		}
+    wait(NULL);
 	}
+  close(pipes[READ]);
 
-      //fgets(buffer, sizeof(buffer), pipes[READ]); // 첫 줄만 읽어오기
-      close(pipes[READ]);
-      //printf("Received: %s", buffer); // 첫 줄 출력
-//	printf("여긴들어오나?3\n");
+  //***** Check if the error message is maintained
 }
 
 
