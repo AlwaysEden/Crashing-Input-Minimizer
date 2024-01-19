@@ -10,3 +10,5 @@ The delta algorithm which is implemented is not popular binray algorithm. Since 
 ## How to Execute
 To execute this program, you can put ./cimin -i [crash input file] -m "[Error string]" -o [file to store output] [target program].
 Also, You can check how to execute the program in Makefile.
+
+This project is from prof.Hong https://github.com/hongshin/OperatingSystem
